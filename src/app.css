@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Tích hợp thư viện Flowbite */
+@plugin "flowbite/plugin";
+
+/* Đường dẫn chuẩn từ thư mục src ra node_modules */
+@source "../node_modules/flowbite-svelte";
+@source "../node_modules/flowbite-svelte-icons";
+
+/* Cấu hình tông màu VNU-LEO */
+@theme {
+  --color-primary-50: #FFF5F2;
+  --color-primary-100: #FFF1EE;
+  --color-primary-200: #FFE4DE;
+  --color-primary-300: #FFD5CC;
+  --color-primary-400: #FFBCAD;
+  --color-primary-500: #FE795D;
+  --color-primary-600: #EF562F;
+  --color-primary-700: #EB4F27;
+  --color-primary-800: #CC4522;
+  --color-primary-900: #A5371B;
+}
