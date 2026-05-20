@@ -1,10 +1,24 @@
 <script lang="ts">
   import OverviewTab from '$lib/components/OverviewTab.svelte';
-  
-  // 1. Bỏ dấu // ở dòng này để import file bạn vừa tạo
-  import AnalyticsTab from '$lib/components/AnalyticsTab.svelte';
+  import { disconnectWebSocket } from '$lib/store';
+
+  type AnalyticsComponent = typeof import('$lib/components/AnalyticsTab.svelte').default;
+  let AnalyticsTab = $state<AnalyticsComponent | null>(null);
 
   let activeTab = $state<'overview' | 'analytics'>('overview');
+
+  async function openAnalytics() {
+    activeTab = 'analytics';
+    disconnectWebSocket();
+    if (!AnalyticsTab) {
+      const mod = await import('$lib/components/AnalyticsTab.svelte');
+      AnalyticsTab = mod.default;
+    }
+  }
+
+  function openOverview() {
+    activeTab = 'overview';
+  }
 </script>
 
 <div class="app-layout">
@@ -13,17 +27,17 @@
       <span class="status-dot"></span>
       <h1>GIÁM SÁT MẠNG VỆ TINH VNU-LEO</h1>
     </div>
-    
+
     <div class="tab-controls">
-      <button 
-        class:active={activeTab === 'overview'} 
-        onclick={() => activeTab = 'overview'}
+      <button
+        class:active={activeTab === 'overview'}
+        onclick={openOverview}
       >
         Lớp 2: Overview
       </button>
-      <button 
-        class:active={activeTab === 'analytics'} 
-        onclick={() => activeTab = 'analytics'}
+      <button
+        class:active={activeTab === 'analytics'}
+        onclick={openAnalytics}
       >
         Lớp 3: Chi tiết vệ tinh
       </button>
@@ -33,20 +47,19 @@
   <section class="content-area">
     {#if activeTab === 'overview'}
       <OverviewTab />
-    {:else if activeTab === 'analytics'}
-      
+    {:else if AnalyticsTab}
       <AnalyticsTab />
-      
+    {:else}
+      <div class="tab-loading">Đang tải tab Lớp 3...</div>
     {/if}
   </section>
 </div>
 
 <style>
-  /* Base style cho toàn bộ trang Dashboard */
   :global(body) {
     margin: 0;
     padding: 0;
-    background-color: #0b1120; /* Màu nền xanh đen đặc trưng của NOC */
+    background-color: #0b1120;
     color: #e2e8f0;
     font-family: 'Inter', sans-serif;
   }
@@ -114,5 +127,14 @@
   .content-area {
     flex: 1;
     overflow: hidden;
+  }
+
+  .tab-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #94a3b8;
+    font-size: 0.9rem;
   }
 </style>

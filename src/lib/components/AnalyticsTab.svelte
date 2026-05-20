@@ -1,7 +1,17 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { connectLeoWebSocket, disconnectLeoWebSocket } from '$lib/leoStore';
   import SatelliteList from './SatelliteList.svelte';
   import SatelliteDetail from './SatelliteDetail.svelte';
   import SatelliteCharts from './SatelliteCharts.svelte';
+
+  onMount(() => {
+    connectLeoWebSocket();
+  });
+
+  onDestroy(() => {
+    disconnectLeoWebSocket();
+  });
 </script>
 
 <div class="analytics-container">
@@ -21,7 +31,6 @@
 <style>
   .analytics-container {
     display: grid;
-    /* Cột trái 250px, Cột giữa linh hoạt, Cột phải 350px */
     grid-template-columns: 250px 1fr 350px;
     gap: 1rem;
     height: 100%;
@@ -42,4 +51,5 @@
     min-height: 0;
     overflow: hidden;
   }
+
 </style>

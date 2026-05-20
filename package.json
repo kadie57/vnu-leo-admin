@@ -5,6 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"backend": "python backend/be_final.py",
+		"backend:walker": "cd backend && python -m uvicorn be_final:app --host 0.0.0.0 --port 8000",
+		"backend:leo": "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8001",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",

@@ -63,6 +63,35 @@ GATEWAYS = [
 gw_status = {i: None for i in range(len(GATEWAYS))}
 handover_flash = {i: 0 for i in range(len(GATEWAYS))}
 
+HANOI_GW = GATEWAYS[0]
+ORBIT_V_KMS = float(np.sqrt(MU / R_SAT))
+ORBIT_PERIOD_MIN = float(2 * np.pi * np.sqrt(R_SAT**3 / MU) / 60)
+
+
+def _sat_telemetry(lon: float, lat: float) -> dict:
+    """Thông số RF/vị trí tới gateway Hà Nội (đồng bộ tab Lớp 3)."""
+    dist = float(np.sqrt((lon - HANOI_GW["lon"]) ** 2 + (lat - HANOI_GW["lat"]) ** 2))
+    elev = 90.0 - dist * 5
+    az = float(np.degrees(np.arctan2(HANOI_GW["lon"] - lon, HANOI_GW["lat"] - lat))) % 360
+    if elev >= MIN_ELEV:
+        cn = round(15.0 + ((elev - MIN_ELEV) / 75.0) * 10.0, 1)
+        delay_ms = round(15 + (90 - elev) * 0.15)
+        link = "Hoạt động tốt" if elev >= 25 else "Trong vùng phủ"
+    else:
+        cn = 0.0
+        delay_ms = 0
+        link = "Ngoài vùng phủ"
+    slant_km = max(R_SAT * np.sin(np.radians(max(elev, 0.1))), R_EARTH)
+    fspl = round(20 * np.log10(slant_km) + 20 * np.log10(12000) + 32.44, 1)
+    return {
+        "elevationHanoi": round(elev, 1),
+        "azimuthHanoi": round(az, 1),
+        "cn": cn,
+        "delayMs": delay_ms,
+        "fspl": fspl,
+        "linkStatus": link,
+    }
+
 # ==========================================
 # 3. FastAPI + WebSocket
 # ==========================================
@@ -122,6 +151,7 @@ async def simulation_loop(websocket: WebSocket):
                 prev_coords[i] = (lon, lat)
                 sat_coords.append((lon, lat))
 
+                telem = _sat_telemetry(lon, lat)
                 sat_list.append({
                     "id": f"LEO-{i:02d}",
                     "lat": lat,
@@ -129,6 +159,13 @@ async def simulation_loop(websocket: WebSocket):
                     "latDir": lat_dir,
                     "lngDir": lon_dir,
                     "color": "#475569",
+                    "altKm": ALTITUDE,
+                    "velocityKms": round(ORBIT_V_KMS, 2),
+                    "inclinationDeg": config.inclination_deg,
+                    "periodMin": round(ORBIT_PERIOD_MIN, 1),
+                    "band": "Ku-Band",
+                    **telem,
+                    "status": "OFFLINE",
                 })
 
             gw_data = []
@@ -233,15 +270,19 @@ async def simulation_loop(websocket: WebSocket):
                 if s_id in flash_sats:
                     sat_list[s_id]["color"] = "#f59e0b"
                     sat_list[s_id]["isActive"] = True
+                    sat_list[s_id]["status"] = "HANDOVER"
                 elif s_id in connected_sats:
                     sat_list[s_id]["color"] = "#10b981"
                     sat_list[s_id]["isActive"] = True
+                    sat_list[s_id]["status"] = "ACTIVE"
                 elif s_id in in_view_sats:
                     sat_list[s_id]["color"] = "#f59e0b"
                     sat_list[s_id]["isActive"] = True
+                    sat_list[s_id]["status"] = "IN VIEW"
                 else:
                     sat_list[s_id]["color"] = "#ef4444"
                     sat_list[s_id]["isActive"] = False
+                    sat_list[s_id]["status"] = "OFFLINE"
 
             no_signal_count = sum(1 for gw in gw_data if gw["status"] == "NO SIGNAL")
             if no_signal_count >= 2:
