@@ -122,6 +122,8 @@ async def simulation_loop(websocket: WebSocket):
             in_view_sats = set()
             connected_sats = set()
             flash_sats = set()
+            handover_count = 0
+            connected_elevations = []
             
             for i, gw in enumerate(GATEWAYS):
                 best_sat_id = None
@@ -156,6 +158,11 @@ async def simulation_loop(websocket: WebSocket):
                 if handover_flash[i] > 0:
                     handover_flash[i] -= 1
                     is_flash = True
+
+                if is_flash:
+                    handover_count += 1
+                if connected_id is not None:
+                    connected_elevations.append(max_el)
                 
                 # Gán màu và link nếu có kết nối
                 if connected_id is not None:
@@ -207,11 +214,36 @@ async def simulation_loop(websocket: WebSocket):
                     sat_list[s_id]["color"] = "#ef4444" # Đỏ: Mất tín hiệu do bay ra ngoài đại dương / ngoài vùng (No Signal)
                     sat_list[s_id]["isActive"] = False
 
+            no_signal_count = sum(1 for gw in gw_data if gw["status"] == "NO SIGNAL")
+            if no_signal_count >= 2:
+                system_status = "Suy giảm"
+                system_status_color = "#ef4444"
+            elif handover_count > 0 or no_signal_count >= 1:
+                system_status = "Cảnh báo handover"
+                system_status_color = "#f59e0b"
+            else:
+                system_status = "Hoạt động bình thường"
+                system_status_color = "#10b981"
+
+            if connected_elevations:
+                avg_el = sum(connected_elevations) / len(connected_elevations)
+                avg_latency_ms = round(15 + (90 - avg_el) * 0.15)
+            else:
+                avg_latency_ms = 0
+
             await websocket.send_json({
                 "time": t,
                 "satellites": sat_list,
                 "gateways": gw_data,
-                "connections": connections
+                "connections": connections,
+                "overview": {
+                    "totalSatellites": NUM_SATS,
+                    "coveringVietnam": len(in_view_sats),
+                    "upcomingHandover": handover_count,
+                    "systemStatus": system_status,
+                    "systemStatusColor": system_status_color,
+                    "avgLatencyMs": avg_latency_ms
+                }
             })
             
             frame += 1

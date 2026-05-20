@@ -1,16 +1,31 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-export const satelliteData = writable({
+export interface OverviewStats {
+    totalSatellites: number;
+    coveringVietnam: number;
+    upcomingHandover: number;
+    systemStatus: string;
+    systemStatusColor: string;
+    avgLatencyMs: number;
+}
+
+export const satelliteData = writable<{
+    satellites: unknown[];
+    gateways: unknown[];
+    connections: unknown[];
+    overview: OverviewStats | null;
+}>({
     satellites: [],
     gateways: [],
-    connections: []
+    connections: [],
+    overview: null
 });
 
-let ws;
+let ws: WebSocket | undefined;
 
 export function connectWebSocket() {
-    if (!browser) return; // Only run on client side
+    if (!browser) return;
     if (ws && ws.readyState === WebSocket.OPEN) return;
     
     ws = new WebSocket('ws://localhost:8000/ws');
@@ -25,12 +40,11 @@ export function connectWebSocket() {
     };
 
     ws.onclose = () => {
-        // Tự động kết nối lại sau 1s nếu bị đứt
         setTimeout(connectWebSocket, 1000);
     };
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        ws.close();
+        ws?.close();
     };
 }

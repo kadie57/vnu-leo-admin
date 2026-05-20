@@ -4,6 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"backend": "python backend/be_final.py",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
@@ -31,8 +32,10 @@
 		"vite": "^8.0.7"
 	},
 	"dependencies": {
+		"chart.js": "^4.5.1",
 		"globe.gl": "^2.46.1",
 		"leaflet": "^1.9.4",
+		"svelte-chartjs": "^4.0.1",
 		"three": "^0.184.0"
 	}
 }

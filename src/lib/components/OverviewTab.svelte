@@ -1,7 +1,13 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { connectWebSocket } from '$lib/store';
   import LeftStats from './LeftStats.svelte';
   import EarthMap from './EarthMap.svelte';
   import GatewayPanel from './GatewayPanel.svelte';
+
+  onMount(() => {
+    connectWebSocket();
+  });
 </script>
 
 <div class="overview-container">

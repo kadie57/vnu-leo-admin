@@ -1,10 +1,10 @@
 <script lang="ts">
   import OverviewTab from '$lib/components/OverviewTab.svelte';
-  // Bạn sẽ tạo file này sau:
-  // import AnalyticsTab from '$lib/components/AnalyticsTab.svelte';
+  
+  // 1. Bỏ dấu // ở dòng này để import file bạn vừa tạo
+  import AnalyticsTab from '$lib/components/AnalyticsTab.svelte';
 
-  // State để quản lý việc chuyển tab
-  let activeTab = 'overview';
+  let activeTab = $state<'overview' | 'analytics'>('overview');
 </script>
 
 <div class="app-layout">
@@ -17,13 +17,13 @@
     <div class="tab-controls">
       <button 
         class:active={activeTab === 'overview'} 
-        on:click={() => activeTab = 'overview'}
+        onclick={() => activeTab = 'overview'}
       >
         Lớp 2: Overview
       </button>
       <button 
         class:active={activeTab === 'analytics'} 
-        on:click={() => activeTab = 'analytics'}
+        onclick={() => activeTab = 'analytics'}
       >
         Lớp 3: Chi tiết vệ tinh
       </button>
@@ -34,7 +34,9 @@
     {#if activeTab === 'overview'}
       <OverviewTab />
     {:else if activeTab === 'analytics'}
-      <div style="color: white; padding: 2rem;">Đang xây dựng Tab Phân tích...</div>
+      
+      <AnalyticsTab />
+      
     {/if}
   </section>
 </div>

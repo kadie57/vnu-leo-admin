@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
-  import { satelliteData, connectWebSocket } from '$lib/store';
+  import { satelliteData } from '$lib/store';
   
   let mapElement;
   let map;
@@ -14,9 +14,9 @@
 
   // Dữ liệu 3 trạm Gateway mặt đất tĩnh
   const staticGateways = [
-    { name: 'Gateway Hà Nội', lat: 21.0328, lng: 105.8342, statusColor: '#10b981' },
-    { name: 'Gateway Đà Nẵng', lat: 16.0544, lng: 108.2022, statusColor: '#f59e0b' },
-    { name: 'Gateway TP.HCM', lat: 10.8231, lng: 106.6297, statusColor: '#ef4444' }
+    { name: 'Gateway Hà Nội', lat: 21.0285, lng: 105.8542, statusColor: '#10b981' },
+    { name: 'Gateway Đà Nẵng', lat: 16.0421, lng: 108.2068, statusColor: '#f59e0b' },
+    { name: 'Gateway TP.HCM', lat: 10.8231, lng: 106.6297, statusColor: '#eb4f27' }
   ];
 
   onMount(async () => {
@@ -42,9 +42,6 @@
       coverageLayer = L.layerGroup().addTo(map);
       linksLayer = L.layerGroup().addTo(map);
       satelliteLayer = L.layerGroup().addTo(map);
-
-      // Mở kết nối WebSocket tới Python Backend
-      connectWebSocket();
 
       // Vẽ Gateways cố định trên mặt đất 1 lần
       staticGateways.forEach(gw => {
