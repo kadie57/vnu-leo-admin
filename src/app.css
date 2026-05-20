@@ -20,3 +20,35 @@
   --color-primary-800: #CC4522;
   --color-primary-900: #A5371B;
 }
+
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+:root {
+  --bg-main: #0f172a; /* Màu nền tối xanh thẫm */
+  --bg-panel: #1e293b; /* Màu nền của các khối */
+  --border-color: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-orange: #f97316; /* Màu cam của nút/chọn */
+  --accent-green: #22c55e; /* Màu xanh lá trạng thái */
+}
+
+body {
+
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar tùy chỉnh cho đẹp */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
