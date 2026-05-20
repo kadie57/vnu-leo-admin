@@ -26,25 +26,21 @@
 
   let lastTrackedId = $state<string | null>(null);
 
+// Chỉ chạy khi 'sat' thực sự thay đổi giá trị cn hoặc delay
   $effect(() => {
     if (!sat) return;
-    const cn = sat.cn ?? 0;
-    const delay = sat.delay ?? 0;
-    const label = new Date().toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
 
-    if (labels.length > 0 && labels[labels.length - 1] === label) {
-      cnSeries = [...cnSeries.slice(0, -1), cn];
-      delaySeries = [...delaySeries.slice(0, -1), delay];
-      return;
+    // Kiểm tra để tránh cập nhật dư thừa
+    const newCn = sat.cn ?? 0;
+    const newDelay = sat.delay ?? 0;
+    const timeLabel = new Date().toLocaleTimeString('vi-VN', { second: '2-digit' });
+
+    // Chỉ cập nhật nếu dữ liệu thực sự mới
+    if (labels[labels.length - 1] !== timeLabel) {
+       labels = [...labels.slice(-MAX_POINTS + 1), timeLabel];
+       cnSeries = [...cnSeries.slice(-MAX_POINTS + 1), newCn];
+       delaySeries = [...delaySeries.slice(-MAX_POINTS + 1), newDelay];
     }
-
-    labels = [...labels, label].slice(-MAX_POINTS);
-    cnSeries = [...cnSeries, cn].slice(-MAX_POINTS);
-    delaySeries = [...delaySeries, delay].slice(-MAX_POINTS);
   });
 
   $effect(() => {

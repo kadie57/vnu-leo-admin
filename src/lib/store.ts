@@ -61,7 +61,7 @@ export function connectWebSocket() {
     if (!browser) return;
     if (ws && ws.readyState === WebSocket.OPEN) return;
 
-    ws = new WebSocket('ws://localhost:8000/ws');
+    ws = new WebSocket('ws://127.0.0.1:8000/ws/vnu-leo');
 
     ws.onmessage = (event) => {
         try {
