@@ -341,8 +341,9 @@ async def health():
     }
 
 
-@app.websocket("/ws")
+@app.websocket("/ws/vnu-leo")
 async def websocket_endpoint(websocket: WebSocket):
+    # Đây là nơi quan trọng: Gọi hàm mô phỏng khi có kết nối
     await simulation_loop(websocket)
 
 
