@@ -1,53 +1,116 @@
 <script lang="ts">
-  import { Sidebar, SidebarGroup, SidebarItem, SidebarWrapper } from 'flowbite-svelte';
-  import { GlobeSolid, GridSolid } from 'flowbite-svelte-icons';
-  
-  // Import 2 Component
-  import OrbitSimulation from '$lib/components/OrbitSimulation.svelte';
-  // Thay dòng import cũ thành dòng này
-  import NetworkMonitoring from '$lib/components/NetworkMonitoring.svelte';
+  import OverviewTab from '$lib/components/OverviewTab.svelte';
+  // Bạn sẽ tạo file này sau:
+  // import AnalyticsTab from '$lib/components/AnalyticsTab.svelte';
 
-  let spanClass = 'flex-1 ms-3 whitespace-nowrap';
-  
-  // Mặc định mở Tab Quỹ đạo (orbit) đầu tiên
-  let activeTab = $state('orbit'); 
+  // State để quản lý việc chuyển tab
+  let activeTab = 'overview';
 </script>
 
-<div class="flex h-screen bg-gray-900 text-white overflow-hidden">
-  <aside class="w-52 border-r border-gray-700 bg-gray-800 shrink-0">
-    <SidebarWrapper class="bg-gray-800">
-      <div class="flex items-center justify-center py-4 mb-4 border-b border-gray-700">
-        <h2 class="text-xl font-bold text-primary-500">VNU-LEO ADMIN</h2>
-      </div>
-      <SidebarGroup>
-        <SidebarItem label="Quỹ đạo & Phủ sóng" onclick={(any) => activeTab = 'orbit'} class="text-gray-300 hover:text-white cursor-pointer hover:bg-gray-700 {activeTab === 'orbit' ? 'bg-gray-700 text-white' : ''}">
-          <svelte:fragment slot="icon">
-            <GlobeSolid class="w-5 h-5 transition duration-75 {activeTab === 'orbit' ? 'text-primary-500' : 'text-gray-400'}" />
-          </svelte:fragment>
-        </SidebarItem>
+<div class="app-layout">
+  <header class="top-bar">
+    <div class="brand">
+      <span class="status-dot"></span>
+      <h1>GIÁM SÁT MẠNG VỆ TINH VNU-LEO</h1>
+    </div>
+    
+    <div class="tab-controls">
+      <button 
+        class:active={activeTab === 'overview'} 
+        on:click={() => activeTab = 'overview'}
+      >
+        Lớp 2: Overview
+      </button>
+      <button 
+        class:active={activeTab === 'analytics'} 
+        on:click={() => activeTab = 'analytics'}
+      >
+        Lớp 3: Chi tiết vệ tinh
+      </button>
+    </div>
+  </header>
 
-        <SidebarItem label="Giám sát Core Network" onclick={(any) => activeTab = 'network'} class="text-gray-300 hover:text-white cursor-pointer hover:bg-gray-700 {activeTab === 'network' ? 'bg-gray-700 text-white' : ''}">
-          <svelte:fragment slot="icon">
-            <GridSolid class="w-5 h-5 transition duration-75 {activeTab === 'network' ? 'text-primary-500' : 'text-gray-400'}" />
-          </svelte:fragment>
-        </SidebarItem>
-      </SidebarGroup>
-    </SidebarWrapper>
-  </aside>
-
-  <main class="flex-1 p-2 overflow-y-auto">
-    <header class="mb-4">
-      <h1 class="text-3xl font-bold">
-        {#if activeTab === 'orbit'}  Quỹ đạo & Phủ sóng VNU-LEO
-        {:else if activeTab === 'network'}  Chuyển giao Gateway (Handover)
-        {/if}
-      </h1>
-    </header>
-
-    {#if activeTab === 'orbit'}
-      <OrbitSimulation />
-    {:else if activeTab === 'network'}
-      <NetworkMonitoring />
+  <section class="content-area">
+    {#if activeTab === 'overview'}
+      <OverviewTab />
+    {:else if activeTab === 'analytics'}
+      <div style="color: white; padding: 2rem;">Đang xây dựng Tab Phân tích...</div>
     {/if}
-  </main>
+  </section>
 </div>
+
+<style>
+  /* Base style cho toàn bộ trang Dashboard */
+  :global(body) {
+    margin: 0;
+    padding: 0;
+    background-color: #0b1120; /* Màu nền xanh đen đặc trưng của NOC */
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .top-bar {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    background-color: #0f172a;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #10b981;
+    border-radius: 50%;
+  }
+
+  .tab-controls button {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .tab-controls button:first-child {
+    border-radius: 6px 0 0 6px;
+  }
+
+  .tab-controls button:last-child {
+    border-radius: 0 6px 6px 0;
+  }
+
+  .tab-controls button.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+  }
+
+  .content-area {
+    flex: 1;
+    overflow: hidden;
+  }
+</style>
