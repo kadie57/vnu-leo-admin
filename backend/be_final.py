@@ -182,6 +182,8 @@ async def simulation_loop(websocket: WebSocket):
                     "inclinationDeg": config.inclination_deg,
                     "periodMin": round(ORBIT_PERIOD_MIN, 1),
                     "band": "Ku-Band",
+                    "raan": round(np.degrees(raan), 2),                
+                    "trueAnomaly": round(np.degrees(theta) % 360, 2),
                     **telem,
                     "status": "OFFLINE",
                 })

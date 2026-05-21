@@ -39,6 +39,8 @@ export interface Satellite {
     velocityKms?: number;
     inclinationDeg?: number;
     periodMin?: number;
+    raan?: number;
+    trueAnomaly?: number;
     band?: string;
     linkStatus?: string;
 }
