@@ -15,11 +15,18 @@ export interface LeoSatellite {
     elevation_hcm: number;
     azimuth_hcm: number;
     distance: number;
-    status: string;
+    status: 'ACTIVE' | 'STANDBY' | 'NO SIGNAL';
     color: string;
     cn: number;
     fspl: number;
     delay: number;
+    velocityKms: number;
+    inclinationDeg: number;
+    periodMin: number;
+    raan: number;
+    trueAnomaly: number;
+    band: string;
+    linkStatus: string;
 }
 
 export const selectedLeoId = writable<string | null>(null);
@@ -29,25 +36,31 @@ export const leoDetailData = derived(satelliteData, ($data) => {
         // Tái tạo lại khoảng cách xấp xỉ từ elevation
         const dist = s.fspl ? Math.round(Math.pow(10, (s.fspl - 32.44 - 20 * Math.log10(12000)) / 20)) : 10666;
         
-        return {
+     return {
             id: s.id,
             lat: Number(s.lat.toFixed(4)),
             lng: Number(s.lng.toFixed(4)),
-            alt_km: s.altKm || 1200,
-            elevation: s.elevationHanoi || 0,
-            azimuth: s.azimuthHanoi || 0,
-            elevation_danang: s.elevationDanang || 0,
-            azimuth_danang: s.azimuthDanang || 0,
-            elevation_hcm: s.elevationHCM || 0,
-            azimuth_hcm: s.azimuthHCM || 0,
+            alt_km: s.altKm ?? 1200,
+            elevation: s.elevationHanoi ?? 0,
+            azimuth: s.azimuthHanoi ?? 0,
+            elevation_danang: s.elevationDanang ?? 0,
+            azimuth_danang: s.azimuthDanang ?? 0,
+            elevation_hcm: s.elevationHCM ?? 0,
+            azimuth_hcm: s.azimuthHCM ?? 0,
             distance: dist,
-            // Logic status tái tạo lại logic trước đây
-            status: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? "ACTIVE" : "STANDBY") : "NO SIGNAL",
-            color: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? "#10b981" : "#f59e0b") : "#ef4444",
-            cn: s.cn || 0,
-            fspl: s.fspl || 0,
-            delay: s.delayMs || 0
-        };
+            status: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? 'ACTIVE' : 'STANDBY') : 'NO SIGNAL',
+            color: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? '#10b981' : '#f59e0b') : '#ef4444',
+            cn: s.cn ?? 0,
+            fspl: s.fspl ?? 0,
+            delay: s.delayMs ?? 0,
+            velocityKms: s.velocityKms ?? 0,
+            inclinationDeg: s.inclinationDeg ?? 0,
+            periodMin: s.periodMin ?? 0,
+            raan: s.raan ?? 0,
+            trueAnomaly: s.trueAnomaly ?? 0,
+            band: s.band ?? '',
+            linkStatus: s.linkStatus ?? 'NO SIGNAL'
+        };   
     }) as LeoSatellite[];
 });
 

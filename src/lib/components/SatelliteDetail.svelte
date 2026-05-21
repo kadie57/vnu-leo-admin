@@ -2,12 +2,12 @@
   import { leoDetailData, selectedLeoId } from '$lib/leoStore';
   import EarthMap from './EarthMap.svelte';
 
+  // Use Svelte 5 runes-style reactive APIs (project uses runes mode)
   let satellites = $derived($leoDetailData);
   let selectedId = $derived($selectedLeoId);
   let sat = $derived(satellites.find((s) => s.id === selectedId) ?? null);
 
-  // 1. Thêm biến quản lý trạng thái Tab (Svelte 5 syntax)
-  let activeTab = $state('tong_quan'); // Các giá trị: 'tong_quan' | 'quy_dao' | 'lien_ket'
+  let activeTab = $state('tong_quan');
 </script>
 
 {#if !sat}

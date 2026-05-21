@@ -131,7 +131,7 @@ async def simulation_loop(websocket: WebSocket):
 
     try:
         while True:
-            t = frame * 30  # 30 giây mô phỏng mỗi frame (giống be_final gốc)
+            t = frame * 20  # 20 giây mô phỏng mỗi frame (giống be_final gốc)
             theta_g = OMEGA_E * t
 
             sat_list = []
@@ -343,7 +343,7 @@ async def simulation_loop(websocket: WebSocket):
             })
 
             frame += 1
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
     except Exception as e:
         print("Disconnected", e)
 
