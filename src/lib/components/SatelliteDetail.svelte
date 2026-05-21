@@ -31,14 +31,6 @@
         <div class="sat-image-placeholder">
           <EarthMap />
         </div>
-        <div class="basic-stats">
-          <div class="stat-box"><span>Altitude</span><strong>{sat.alt_km ?? '--'} km</strong></div>
-          <div class="stat-box"><span>Distance</span><strong>{sat.distance ?? '--'} km</strong></div>
-          <div class="stat-box"><span>Elevation</span><strong>{sat.elevation ?? '--'}°</strong></div>
-          <div class="stat-box"><span>Azimuth</span><strong>{sat.azimuth ?? '--'}°</strong></div>
-          <div class="stat-box"><span>Gateway</span><strong>Hà Nội</strong></div>
-          <div class="stat-box"><span>Nguồn</span><strong>Walker-Delta</strong></div>
-        </div>
       </div>
 
       <div class="info-table">
