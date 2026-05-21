@@ -1,6 +1,5 @@
 <script lang="ts">
   import OverviewTab from '$lib/components/OverviewTab.svelte';
-  import { disconnectWebSocket } from '$lib/store';
 
   type AnalyticsComponent = typeof import('$lib/components/AnalyticsTab.svelte').default;
   let AnalyticsTab = $state<AnalyticsComponent | null>(null);
@@ -9,7 +8,6 @@
 
   async function openAnalytics() {
     activeTab = 'analytics';
-    disconnectWebSocket();
     if (!AnalyticsTab) {
       const mod = await import('$lib/components/AnalyticsTab.svelte');
       AnalyticsTab = mod.default;

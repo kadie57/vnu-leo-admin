@@ -1,16 +1,12 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { connectLeoWebSocket, disconnectLeoWebSocket } from '$lib/leoStore';
+  import { onMount } from 'svelte';
+  import { connectLeoWebSocket } from '$lib/leoStore';
   import SatelliteList from './SatelliteList.svelte';
   import SatelliteDetail from './SatelliteDetail.svelte';
   import SatelliteCharts from './SatelliteCharts.svelte';
 
   onMount(() => {
     connectLeoWebSocket();
-  });
-
-  onDestroy(() => {
-    disconnectLeoWebSocket();
   });
 </script>
 

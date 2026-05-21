@@ -1,7 +1,8 @@
-import { get, writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import { satelliteData } from './store';
 
-/** Dữ liệu từ backend/main.py — mô phỏng Walker-Delta 32 vệ tinh */
+/** Dữ liệu từ backend/be_final.py — mô phỏng Walker-Delta 32 vệ tinh (đã đồng bộ map) */
 export interface LeoSatellite {
     id: string;
     lat: number;
@@ -17,56 +18,59 @@ export interface LeoSatellite {
     delay: number;
 }
 
-export const leoDetailData = writable<LeoSatellite[]>([]);
 export const selectedLeoId = writable<string | null>(null);
 
-/** Tab Lớp 3 — main.py cổng 8001 */
-const LEO_WS = 'ws://127.0.0.1:8001/ws/vnu-leo';
+export const leoDetailData = derived(satelliteData, ($data) => {
+    return $data.satellites.map(s => {
+        // Tái tạo lại khoảng cách xấp xỉ từ elevation
+        const dist = s.fspl ? Math.round(Math.pow(10, (s.fspl - 32.44 - 20 * Math.log10(12000)) / 20)) : 10666;
+        
+        return {
+            id: s.id,
+            lat: Number(s.lat.toFixed(4)),
+            lng: Number(s.lng.toFixed(4)),
+            alt_km: s.altKm || 1200,
+            elevation: s.elevationHanoi || 0,
+            azimuth: s.azimuthHanoi || 0,
+            distance: dist,
+            // Logic status tái tạo lại logic trước đây
+            status: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? "ACTIVE" : "STANDBY") : "NO SIGNAL",
+            color: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? "#10b981" : "#f59e0b") : "#ef4444",
+            cn: s.cn || 0,
+            fspl: s.fspl || 0,
+            delay: s.delayMs || 0
+        };
+    }) as LeoSatellite[];
+});
 
-let ws: WebSocket | undefined;
-
-export function connectLeoWebSocket() {
-    if (!browser) return;
-    if (ws && ws.readyState === WebSocket.OPEN) return;
-
-    ws = new WebSocket(LEO_WS);
-
-    ws.onmessage = (event) => {
-        try {
-            const payload = JSON.parse(event.data) as LeoSatellite[];
-            if (!Array.isArray(payload)) return;
-
-            leoDetailData.set(payload);
-
-            const current = get(selectedLeoId);
-            if (!current || !payload.some((s) => s.id === current)) {
+// Lắng nghe sự thay đổi để tự động focus vệ tinh tốt nhất
+if (browser) {
+    leoDetailData.subscribe(payload => {
+        if (!payload || payload.length === 0) return;
+        selectedLeoId.update(current => {
+            if (!current || !payload.some(s => s.id === current)) {
                 const preferred =
                     payload.find((s) => s.status === 'ACTIVE') ??
                     payload.reduce(
                         (best, s) => (s.elevation > best.elevation ? s : best),
                         payload[0]
                     );
-                if (preferred) selectedLeoId.set(preferred.id);
+                return preferred ? preferred.id : current;
             }
-        } catch (err) {
-            console.error('LEO WS parse error:', err);
-        }
-    };
+            return current;
+        });
+    });
+}
 
-    ws.onclose = () => {
-        ws = undefined;
-        setTimeout(connectLeoWebSocket, 2000);
-    };
+import { connectWebSocket, disconnectWebSocket } from './store';
 
-    ws.onerror = () => {
-        ws?.close();
-    };
+// Xóa các websocket độc lập, tab sẽ tự kết nối chung từ file store.ts nếu cần ở +layout.svelte
+export function connectLeoWebSocket() {
+    connectWebSocket();
 }
 
 export function disconnectLeoWebSocket() {
-    if (ws) {
-        ws.close();
-        ws = undefined;
-    }
+    // Để giữ kết nối ổn định dù chuyển tab, có thể tạm thời không disconnect.
+    // Hoặc có thể gọi disconnectWebSocket();
 }
 

@@ -21,9 +21,9 @@
 
 <div class="sat-list">
   {#if satellites.length === 0}
-    <div class="loading-msg">Chưa có dữ liệu — chạy main.py cổng 8001</div>
+    <div class="loading-msg">Chưa có dữ liệu</div>
   {:else}
-    <div class="ws-ok">Walker-Delta · {satellites.length} vệ tinh · main.py:8001</div>
+    <div class="ws-ok"> {satellites.length} vệ tinh </div>
   {/if}
 
   {#each satellites as sat (sat.id)}

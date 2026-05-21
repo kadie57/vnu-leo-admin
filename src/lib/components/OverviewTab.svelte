@@ -1,16 +1,12 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { connectWebSocket, disconnectWebSocket } from '$lib/store';
+  import { onMount } from 'svelte';
+  import { connectWebSocket } from '$lib/store';
   import LeftStats from './LeftStats.svelte';
   import EarthMap from './EarthMap.svelte';
   import GatewayPanel from './GatewayPanel.svelte';
 
   onMount(() => {
     connectWebSocket();
-  });
-
-  onDestroy(() => {
-    disconnectWebSocket();
   });
 </script>
 

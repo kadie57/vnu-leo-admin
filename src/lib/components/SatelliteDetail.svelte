@@ -1,5 +1,6 @@
 <script lang="ts">
   import { leoDetailData, selectedLeoId } from '$lib/leoStore';
+  import EarthMap from './EarthMap.svelte';
 
   let satellites = $derived($leoDetailData);
   let selectedId = $derived($selectedLeoId);
@@ -24,7 +25,7 @@
   <div class="detail-content">
     <div class="visual-section">
       <div class="sat-image-placeholder">
-        <img src="https://www.nasa.gov/wp-content/uploads/2023/03/367355main_sdo_orbit-full.jpg" alt="Satellite" />
+        <EarthMap />
       </div>
 
       <div class="basic-stats">
@@ -63,7 +64,6 @@
   .detail-content { display: flex; gap: 1.5rem; flex: 1; min-height: 0; }
   .visual-section { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
   .sat-image-placeholder { flex: 1; border-radius: 8px; overflow: hidden; border: 1px solid #334155; background: #020617; min-height: 120px; }
-  .sat-image-placeholder img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
 
   .basic-stats { display: flex; justify-content: space-between; background: #0d1424; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b; flex-wrap: wrap; gap: 0.5rem; }
   .stat-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
