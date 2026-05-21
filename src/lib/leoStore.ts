@@ -10,6 +10,10 @@ export interface LeoSatellite {
     alt_km: number;
     elevation: number;
     azimuth: number;
+    elevation_danang: number;
+    azimuth_danang: number;
+    elevation_hcm: number;
+    azimuth_hcm: number;
     distance: number;
     status: string;
     color: string;
@@ -32,6 +36,10 @@ export const leoDetailData = derived(satelliteData, ($data) => {
             alt_km: s.altKm || 1200,
             elevation: s.elevationHanoi || 0,
             azimuth: s.azimuthHanoi || 0,
+            elevation_danang: s.elevationDanang || 0,
+            azimuth_danang: s.azimuthDanang || 0,
+            elevation_hcm: s.elevationHCM || 0,
+            azimuth_hcm: s.azimuthHCM || 0,
             distance: dist,
             // Logic status tái tạo lại logic trước đây
             status: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? "ACTIVE" : "STANDBY") : "NO SIGNAL",

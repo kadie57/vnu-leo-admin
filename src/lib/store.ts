@@ -29,6 +29,10 @@ export interface Satellite {
     altKm?: number;
     elevationHanoi?: number;
     azimuthHanoi?: number;
+    elevationDanang?: number;
+    azimuthDanang?: number;
+    elevationHCM?: number;
+    azimuthHCM?: number;
     cn?: number;
     delayMs?: number;
     fspl?: number;

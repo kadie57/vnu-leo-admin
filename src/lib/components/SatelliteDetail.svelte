@@ -43,6 +43,10 @@
       <div class="info-row"><span class="lbl">Vị trí</span><span class="val">{sat.lat}°, {sat.lng}°</span></div>
       <div class="info-row"><span class="lbl">Elevation (Hà Nội)</span><span class="val">{sat.elevation}°</span></div>
       <div class="info-row"><span class="lbl">Azimuth (Hà Nội)</span><span class="val">{sat.azimuth}°</span></div>
+      <div class="info-row"><span class="lbl">Elevation (Đà Nẵng)</span><span class="val">{sat.elevation_danang}°</span></div>
+      <div class="info-row"><span class="lbl">Azimuth (Đà Nẵng)</span><span class="val">{sat.azimuth_danang}°</span></div>
+      <div class="info-row"><span class="lbl">Elevation (TP.HCM)</span><span class="val">{sat.elevation_hcm}°</span></div>
+      <div class="info-row"><span class="lbl">Azimuth (TP.HCM)</span><span class="val">{sat.azimuth_hcm}°</span></div>
       <div class="info-row"><span class="lbl">C/N</span><span class="val highlight">{sat.status === 'NO SIGNAL' ? 'Không liên kết' : `${sat.cn} dB-Hz`}</span></div>
       <div class="info-row"><span class="lbl">FSPL</span><span class="val">{sat.status === 'NO SIGNAL' ? '—' : `${sat.fspl} dB`}</span></div>
       <div class="info-row"><span class="lbl">Trễ một chiều</span><span class="val">{sat.status === 'NO SIGNAL' ? '—' : `${sat.delay} ms`}</span></div>

@@ -69,23 +69,41 @@ ORBIT_PERIOD_MIN = float(2 * np.pi * np.sqrt(R_SAT**3 / MU) / 60)
 
 
 def _sat_telemetry(lon: float, lat: float) -> dict:
-    """Thông số RF/vị trí tới gateway Hà Nội (đồng bộ tab Lớp 3)."""
-    dist = float(np.sqrt((lon - HANOI_GW["lon"]) ** 2 + (lat - HANOI_GW["lat"]) ** 2))
-    elev = 90.0 - dist * 5
-    az = float(np.degrees(np.arctan2(HANOI_GW["lon"] - lon, HANOI_GW["lat"] - lat))) % 360
-    if elev >= MIN_ELEV:
-        cn = round(15.0 + ((elev - MIN_ELEV) / 75.0) * 10.0, 1)
-        delay_ms = round(15 + (90 - elev) * 0.15)
-        link = "Hoạt động tốt" if elev >= 25 else "Trong vùng phủ"
+    """Thông số RF/vị trí tới gateway Hà Nội, Đà Nẵng, TP.HCM."""
+    # 1. Tính toán cho Gateway Hà Nội (GATEWAYS[0])
+    dist_hn = float(np.sqrt((lon - GATEWAYS[0]["lon"]) ** 2 + (lat - GATEWAYS[0]["lat"]) ** 2))
+    elev_hn = 90.0 - dist_hn * 5
+    az_hn = float(np.degrees(np.arctan2(GATEWAYS[0]["lon"] - lon, GATEWAYS[0]["lat"] - lat))) % 360
+
+    # 2. Tính toán cho Gateway Đà Nẵng (GATEWAYS[1])
+    dist_dn = float(np.sqrt((lon - GATEWAYS[1]["lon"]) ** 2 + (lat - GATEWAYS[1]["lat"]) ** 2))
+    elev_dn = 90.0 - dist_dn * 5
+    az_dn = float(np.degrees(np.arctan2(GATEWAYS[1]["lon"] - lon, GATEWAYS[1]["lat"] - lat))) % 360
+
+    # 3. Tính toán cho Gateway TP.HCM (GATEWAYS[2])
+    dist_hcm = float(np.sqrt((lon - GATEWAYS[2]["lon"]) ** 2 + (lat - GATEWAYS[2]["lat"]) ** 2))
+    elev_hcm = 90.0 - dist_hcm * 5
+    az_hcm = float(np.degrees(np.arctan2(GATEWAYS[2]["lon"] - lon, GATEWAYS[2]["lat"] - lat))) % 360
+
+    if elev_hn >= MIN_ELEV:
+        cn = round(15.0 + ((elev_hn - MIN_ELEV) / 75.0) * 10.0, 1)
+        delay_ms = round(15 + (90 - elev_hn) * 0.15)
+        link = "Hoạt động tốt" if elev_hn >= 25 else "Trong vùng phủ"
     else:
         cn = 0.0
         delay_ms = 0
         link = "Ngoài vùng phủ"
-    slant_km = max(R_SAT * np.sin(np.radians(max(elev, 0.1))), R_EARTH)
+        
+    slant_km = max(R_SAT * np.sin(np.radians(max(elev_hn, 0.1))), R_EARTH)
     fspl = round(20 * np.log10(slant_km) + 20 * np.log10(12000) + 32.44, 1)
+    
     return {
-        "elevationHanoi": round(elev, 1),
-        "azimuthHanoi": round(az, 1),
+        "elevationHanoi": round(elev_hn, 1),
+        "azimuthHanoi": round(az_hn, 1),
+        "elevationDanang": round(elev_dn, 1),
+        "azimuthDanang": round(az_dn, 1),
+        "elevationHCM": round(elev_hcm, 1),
+        "azimuthHCM": round(az_hcm, 1),
         "cn": cn,
         "delayMs": delay_ms,
         "fspl": fspl,
