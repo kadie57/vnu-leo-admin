@@ -36,9 +36,15 @@ C_KM_S = 299792.458             # km/s
 # ============================================================
 ALTITUDE_KM = 1200.0            # LEO cao de tang vung phu, giam so ve tinh
 MIN_ELEV_DEG = 10.0             # goc ngang toi thieu; tang len 15 deg se chat hon
-TIME_STEP_SEC = 60              # 60 giay la hop ly cho bai tap
+TIME_STEP_SEC = 10              # 60 giay la hop ly cho bai tap
 SIMULATION_HOURS = 24           # kiem tra 24 gio
 
+# Thêm tọa độ 3 Gateway (Hà Nội, Đà Nẵng, TP.HCM)
+GATEWAYS_DEG = [
+    ("Ha Noi", 21.0285, 105.8542),
+    ("Da Nang", 16.0421, 108.2068),
+    ("TP HCM", 10.8231, 106.6297)
+]
 # Tim kiem so ve tinh
 MIN_TOTAL_SATS = 4
 MAX_TOTAL_SATS = 140
@@ -319,11 +325,6 @@ def evaluate_coverage(config: ConstellationConfig,
                       targets: List[TargetPoint],
                       times_sec: np.ndarray,
                       min_elev_deg: float) -> CoverageResult:
-    """
-    Dieu kien dat:
-        uncovered_count == 0
-    Nghia la moi diem kiem tra, moi thoi diem deu co it nhat 1 ve tinh kha kien.
-    """
     min_elev_sin = math.sin(math.radians(min_elev_deg))
     sat_ecef = satellite_positions_ecef(config, times_sec)
 
@@ -331,27 +332,47 @@ def evaluate_coverage(config: ConstellationConfig,
     n_times = len(times_sec)
     covered_matrix = np.zeros((n_targets, n_times), dtype=bool)
     visible_count_matrix = np.zeros((n_targets, n_times), dtype=np.int16)
-
-    # Luu slant range cua ve tinh tot nhat de uoc tinh delay mot chieu
     best_range_matrix = np.full((n_targets, n_times), np.nan, dtype=float)
 
+    # === LOGIC MỚI: KIỂM TRA KẾT NỐI GATEWAY ===
+    # Chuyển đổi 3 Gateway sang tọa độ ECEF
+    gw_ecef = [ecef_from_latlon(lat, lon) for _, lat, lon in GATEWAYS_DEG]
+    gw_up_vecs = [pos / R_EARTH_KM for pos in gw_ecef]
+    
+    # Ma trận đánh dấu: Vệ tinh nào đang nhìn thấy Gateway (True/False)
+    # Shape: [N_sat, N_time]
+    sat_to_gw = np.zeros((config.total_sats, n_times), dtype=bool)
+    
+    for gw_pos, gw_up in zip(gw_ecef, gw_up_vecs):
+        vec_gw = sat_ecef - gw_pos[None, None, :]
+        dot_gw = np.einsum("ntk,k->nt", vec_gw, gw_up)
+        slant_gw = np.linalg.norm(vec_gw, axis=2)
+        sin_elev_gw = dot_gw / slant_gw
+        # Vệ tinh nhìn thấy Gateway nếu góc ngẩng >= 10 độ
+        sat_to_gw |= (sin_elev_gw >= min_elev_sin)
+    # ============================================
+
     for i, target in enumerate(targets):
-        # vec shape = [N_sat, N_time, 3]
         vec = sat_ecef - target.ecef_km[None, None, :]
         dot = np.einsum("ntk,k->nt", vec, target.up_vec)
         slant_range = np.linalg.norm(vec, axis=2)
         sin_elev = dot / slant_range
 
-        visible = sin_elev >= min_elev_sin
-        visible_any = np.any(visible, axis=0)
-        visible_count = np.sum(visible, axis=0)
+        # Vệ tinh nhìn thấy thiết bị người dùng
+        visible_to_user = sin_elev >= min_elev_sin
+        
+        # ĐIỀU KIỆN MẠNG END-TO-END: 
+        # Vệ tinh phải nhìn thấy Người dùng VÀ Vệ tinh phải nhìn thấy Gateway
+        end_to_end_link = visible_to_user & sat_to_gw
+
+        # Điểm này có mạng khi có ít nhất 1 vệ tinh thỏa mãn end_to_end_link
+        visible_any = np.any(end_to_end_link, axis=0)
+        visible_count = np.sum(end_to_end_link, axis=0)
 
         covered_matrix[i, :] = visible_any
         visible_count_matrix[i, :] = visible_count
 
-        # Khoang cach tot nhat trong cac ve tinh dang thay duoc
-        # Neu khong co ve tinh nao kha kien thi de nan
-        masked_range = np.where(visible, slant_range, np.inf)
+        masked_range = np.where(end_to_end_link, slant_range, np.inf)
         best_range = np.min(masked_range, axis=0)
         best_range[~visible_any] = np.nan
         best_range_matrix[i, :] = best_range
@@ -359,6 +380,9 @@ def evaluate_coverage(config: ConstellationConfig,
     uncovered_count = int(np.size(covered_matrix) - np.sum(covered_matrix))
     coverage_ratio = float(np.mean(covered_matrix))
 
+    # ... (Giữ nguyên phần code tính toán phía dưới của hàm này: point_coverage, worst_idx, max_gap_sec, v.v...)
+    
+    # Doan nay copy lai phan cu cua ban
     point_coverage = np.mean(covered_matrix, axis=1)
     worst_idx = int(np.argmin(point_coverage))
     min_point_coverage_ratio = float(point_coverage[worst_idx])
@@ -400,8 +424,6 @@ def evaluate_coverage(config: ConstellationConfig,
         max_one_way_delay_ms=max_one_way_delay_ms,
         first_uncovered_samples=first_uncovered_samples,
     )
-
-
 # ============================================================
 # 9. TIM SO VE TINH TOI THIEU
 # ============================================================

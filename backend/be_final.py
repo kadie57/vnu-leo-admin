@@ -343,7 +343,7 @@ async def simulation_loop(websocket: WebSocket):
             })
 
             frame += 1
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
     except Exception as e:
         print("Disconnected", e)
 
