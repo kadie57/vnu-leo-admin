@@ -18,8 +18,20 @@ export interface LeoSatellite {
     status: 'ACTIVE' | 'STANDBY' | 'NO SIGNAL';
     color: string;
     cn: number;
-    fspl: number;
     delay: number;
+    fspl: number;
+    linkStatus: string;
+    
+    cn_danang: number;
+    delay_danang: number;
+    fspl_danang: number;
+    linkStatus_danang: string;
+    
+    cn_hcm: number;
+    delay_hcm: number;
+    fspl_hcm: number;
+    linkStatus_hcm: string;
+
     velocityKms: number;
     inclinationDeg: number;
     periodMin: number;
@@ -50,16 +62,28 @@ export const leoDetailData = derived(satelliteData, ($data) => {
             distance: dist,
             status: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? 'ACTIVE' : 'STANDBY') : 'NO SIGNAL',
             color: (s.elevationHanoi && s.elevationHanoi > 10) ? (s.elevationHanoi >= 20 ? '#10b981' : '#f59e0b') : '#ef4444',
-            cn: s.cn ?? 0,
-            fspl: s.fspl ?? 0,
-            delay: s.delayMs ?? 0,
+            
+            cn: s.cn_hanoi ?? 0,
+            delay: s.delay_hanoi_ms ?? 0,
+            fspl: s.fspl_hanoi ?? 0,
+            linkStatus: s.linkStatusHanoi ?? 'NO SIGNAL',
+
+            cn_danang: s.cn_danang ?? 0,
+            delay_danang: s.delay_danang_ms ?? 0,
+            fspl_danang: s.fspl_danang ?? 0,
+            linkStatus_danang: s.linkStatusDanang ?? 'NO SIGNAL',
+
+            cn_hcm: s.cn_hcm ?? 0,
+            delay_hcm: s.delay_hcm_ms ?? 0,
+            fspl_hcm: s.fspl_hcm ?? 0,
+            linkStatus_hcm: s.linkStatusHCM ?? 'NO SIGNAL',
+
             velocityKms: s.velocityKms ?? 0,
             inclinationDeg: s.inclinationDeg ?? 0,
             periodMin: s.periodMin ?? 0,
             raan: s.raan ?? 0,
             trueAnomaly: s.trueAnomaly ?? 0,
             band: s.band ?? '',
-            linkStatus: s.linkStatus ?? 'NO SIGNAL'
         };   
     }) as LeoSatellite[];
 });

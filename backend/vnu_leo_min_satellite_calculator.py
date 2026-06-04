@@ -8,11 +8,6 @@ Logic chinh:
 - Kiem tra moi diem mat dat tren Viet Nam co nhin thay it nhat 1 ve tinh hay khong.
 - Cau hinh dau tien co uncovered_count = 0 duoc xem la dat yeu cau.
 
-Yeu cau Python:
-    pip install numpy
-
-Chay:
-    python vnu_leo_min_satellite_calculator.py
 """
 
 from __future__ import annotations
@@ -26,20 +21,21 @@ import numpy as np
 # ============================================================
 # 1. THONG SO VAT LY
 # ============================================================
-R_EARTH_KM = 6371.0
-MU_EARTH = 398600.4418          # km^3/s^2
-OMEGA_EARTH = 7.2921159e-5     # rad/s
-C_KM_S = 299792.458             # km/s
+R_EARTH_KM = 6371.0         # ban kinh Trai Dat, don vi km
+MU_EARTH = 398600.4418          # km^3/s^2 hang so hap dan (tinh v vtinh)
+OMEGA_EARTH = 7.2921159e-5     # rad/s toc do tu quay cua Trai Dat
+C_KM_S = 299792.458             # toc do anh sang trong don vi km/s
 
 # ============================================================
 # 2. THONG SO MO PHONG - CO THE CHINH SUA
 # ============================================================
 ALTITUDE_KM = 1200.0            # LEO cao de tang vung phu, giam so ve tinh
-MIN_ELEV_DEG = 10.0             # goc ngang toi thieu; tang len 15 deg se chat hon
-TIME_STEP_SEC = 10              # 60 giay la hop ly cho bai tap
+MIN_ELEV_DEG = 10.0             # goc ngang toi thieu
+TIME_STEP_SEC = 10              # 
 SIMULATION_HOURS = 24           # kiem tra 24 gio
 
 # Thêm tọa độ 3 Gateway (Hà Nội, Đà Nẵng, TP.HCM)
+
 GATEWAYS_DEG = [
     ("Ha Noi", 21.0285, 105.8542),
     ("Da Nang", 16.0421, 108.2068),
@@ -53,7 +49,7 @@ MAX_TOTAL_SATS = 140
 # P = so mat phang quy dao, S = so ve tinh/mat phang, N = P*S
 MIN_PLANES = 4
 MAX_PLANES = 14
-MIN_SATS_PER_PLANE = 2
+MIN_SATS_PER_PLANE = 2 # 
 MAX_SATS_PER_PLANE = 20
 
 # Goc nghieng phu hop Viet Nam nam trong khoang 8-23 do Bac.
@@ -73,11 +69,11 @@ VERBOSE = True
 # ============================================================
 # 3. DU LIEU DIEM KIEM TRA
 # ============================================================
-# Tap diem dai dien cac vung: mien Bac, Trung, Nam, Tay Nguyen, bien/dao.
-# Co the them diem tuy y de tang do chat cua bai toan.
+# Toa do dc chuyen sang vector 3D trong ECEF de tinh toan nhanh hon sau nay.
+
 REPRESENTATIVE_TARGETS_DEG = [
     # Mien Bac
-    ("Ha Noi", 21.0285, 105.8542),
+    ("Ha Noi", 21.0285, 105.8542), # kinh do vi do cua 10 diem dai dien dat lien o mien Bac, duoc chon de bao thu ca khu vuc dat lien va mot so khu vuc dao/bien quan trong
     ("Hai Phong", 20.8449, 106.6881),
     ("Quang Ninh", 21.0064, 107.2925),
     ("Lang Son", 21.8537, 106.7615),
@@ -127,16 +123,16 @@ REPRESENTATIVE_TARGETS_DEG = [
 
 
 @dataclass
-class TargetPoint:
-    name: str
-    lat_deg: float
+class TargetPoint: # diem kiem tra tren mat dat
+    name: str # ten diem, de biet diem nao bi mat phu song
+    lat_deg: float # kinh do vi do, de in ket qua va de chuyen sang ECEF
     lon_deg: float
-    ecef_km: np.ndarray
-    up_vec: np.ndarray
+    ecef_km: np.ndarray # toa do 3D trong he ECEF, don vi km
+    up_vec: np.ndarray # vector don vi chi phuong thang dung tai diem kiem tra, dung de tinh goc ngang
 
 
 @dataclass
-class ConstellationConfig:
+class ConstellationConfig: # cau hinh ve tinh: so luong, do cao, goc nghieng, phasing
     total_sats: int
     planes: int
     sats_per_plane: int
@@ -146,7 +142,7 @@ class ConstellationConfig:
 
 
 @dataclass
-class CoverageResult:
+class CoverageResult: # ket qua danh gia phu song cua mot cau hinh ve tinh tren tap diem kiem tra
     config: ConstellationConfig
     uncovered_count: int
     coverage_ratio: float
@@ -168,8 +164,8 @@ def deg2rad(x: float) -> float:
 
 
 def ecef_from_latlon(lat_deg: float, lon_deg: float) -> np.ndarray:
-    """Chuyen toa do lat/lon tren mat cau Trai Dat sang ECEF, don vi km."""
-    lat = deg2rad(lat_deg)
+    """Chuyen kinh do vi do tren mat cau Trai Dat sang ECEF, don vi km."""
+    lat = deg2rad(lat_deg) # chuyen kinh do vi do sang radian de tinh toan
     lon = deg2rad(lon_deg)
     x = R_EARTH_KM * math.cos(lat) * math.cos(lon)
     y = R_EARTH_KM * math.cos(lat) * math.sin(lon)
@@ -177,7 +173,7 @@ def ecef_from_latlon(lat_deg: float, lon_deg: float) -> np.ndarray:
     return np.array([x, y, z], dtype=float)
 
 
-def hms_from_seconds(sec: int) -> str:
+def hms_from_seconds(sec: int) -> str: # chuyen so giay sang chuoi "hh:mm:ss" de in ket qua
     h = sec // 3600
     m = (sec % 3600) // 60
     s = sec % 60
@@ -185,9 +181,9 @@ def hms_from_seconds(sec: int) -> str:
 
 
 def max_consecutive_false_gap_seconds(covered: np.ndarray, step_sec: int) -> int:
-    """Tinh khoang mat song dai nhat trong chuoi covered True/False."""
-    max_run = 0
-    cur = 0
+    """ Khoang thoi gian lien tuc dai nhat ma 1 diem kiem tra bi mat phu song (covered = False)."""
+    max_run = 0 # bien luu khoang thoi gian mat phu dai nhat
+    cur = 0 # bien dem so luong mau lien tiep ma covered = False
     for v in covered:
         if not bool(v):
             cur += 1
@@ -200,12 +196,13 @@ def max_consecutive_false_gap_seconds(covered: np.ndarray, step_sec: int) -> int
 # ============================================================
 # 5. TAO DIEM KIEM TRA
 # ============================================================
-def build_targets_representative() -> List[TargetPoint]:
+def build_targets_representative() -> List[TargetPoint]: 
+    """ duyet 36 dia diem dai dien dat lien + dao/bien, chuyen sang ECEF va tinh up_vec"""
     targets = []
     for name, lat, lon in REPRESENTATIVE_TARGETS_DEG:
         ecef = ecef_from_latlon(lat, lon)
         targets.append(TargetPoint(name=name, lat_deg=lat, lon_deg=lon,
-                                   ecef_km=ecef, up_vec=ecef / R_EARTH_KM))
+                                   ecef_km=ecef, up_vec=ecef / R_EARTH_KM)) 
     return targets
 
 
@@ -250,7 +247,13 @@ def build_targets(mode: str) -> List[TargetPoint]:
 # ============================================================
 def generate_walker_orbits(config: ConstellationConfig) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Tra ve 3 mang radian: inclination, RAAN, true anomaly ban dau.
+    Walker constellation là phương pháp phân bố vệ tinh đều đặn trên nhiều mặt phẳng quỹ đạo nghiêng, 
+    được ký hiệu là T/P/F với T = tổng số vệ tinh, P = số mặt phẳng, F = hệ số phasing.
+    
+    moi ve tinh duoc xac dinh boi 3 tso:
+    Inclination (inc) — góc nghiêng của mặt phẳng quỹ đạo so với xích đạo
+    RAAN (Right Ascension of Ascending Node) — góc xoay của mặt phẳng quỹ đạo quanh trục cực, xác định mặt phẳng đó "quay mặt về hướng nào" trong không gian
+    True anomaly ban đầu (ν₀) — vị trí khởi đầu của vệ tinh trên quỹ đạo tại t=0
     Cau hinh Walker-Delta don gian:
         - RAAN chia deu theo so mat phang
         - Ve tinh trong moi mat phang chia deu theo anomaly
@@ -260,21 +263,21 @@ def generate_walker_orbits(config: ConstellationConfig) -> Tuple[np.ndarray, np.
     raan_list = []
     nu0_list = []
 
-    P = config.planes
-    S = config.sats_per_plane
-    T = config.total_sats
+    P = config.planes # so mat phang quy dao
+    S = config.sats_per_plane # so ve tinh moi mat phang
+    T = config.total_sats # tong so ve tinh = P * S
     inc_rad = math.radians(config.inclination_deg)
 
     for p in range(P):
-        raan = 2.0 * math.pi * p / P
-        for s in range(S):
+        raan = 2.0 * math.pi * p / P # RAAN chia deu theo so mat phang
+        for s in range(S): #
             nu0 = 2.0 * math.pi * s / S + 2.0 * math.pi * config.phasing * p / T
             inc_list.append(inc_rad)
             raan_list.append(raan)
             nu0_list.append(nu0 % (2.0 * math.pi))
-
-    return np.array(inc_list), np.array(raan_list), np.array(nu0_list)
-
+        
+    return np.array(inc_list), np.array(raan_list), np.array(nu0_list) 
+    
 
 # ============================================================
 # 7. TINH VI TRI VE TINH THEO THOI GIAN
@@ -286,22 +289,22 @@ def satellite_positions_ecef(config: ConstellationConfig, times_sec: np.ndarray)
     Output:
         sat_ecef: shape = [N_sat, N_time, 3], don vi km
     """
-    r_sat = R_EARTH_KM + config.altitude_km
-    mean_motion = math.sqrt(MU_EARTH / (r_sat ** 3))
+    r_sat = R_EARTH_KM + config.altitude_km # ban kinh quỹ đạo, don vi km
+    mean_motion = math.sqrt(MU_EARTH / (r_sat ** 3)) # van toc goc cua ve tinh tren quy dao, don vi rad/s
 
-    inc, raan, nu0 = generate_walker_orbits(config)
+    inc, raan, nu0 = generate_walker_orbits(config) # shape = [N_sat]
 
-    theta = nu0[:, None] + mean_motion * times_sec[None, :]
+    theta = nu0[:, None] + mean_motion * times_sec[None, :] # true anomaly theo thoi gian, shape = [N_sat, N_time]
 
-    cos_raan = np.cos(raan)[:, None]
+    cos_raan = np.cos(raan)[:, None]  
     sin_raan = np.sin(raan)[:, None]
     cos_inc = np.cos(inc)[:, None]
     sin_inc = np.sin(inc)[:, None]
 
-    cos_theta = np.cos(theta)
+    cos_theta = np.cos(theta) 
     sin_theta = np.sin(theta)
 
-    # Quy dao tron trong he ECI
+    # Quy dao tron trong he ECI (Trái Đất cố định trong không gian, không quay theo Trái Đất)
     x_eci = r_sat * (cos_raan * cos_theta - sin_raan * cos_inc * sin_theta)
     y_eci = r_sat * (sin_raan * cos_theta + cos_raan * cos_inc * sin_theta)
     z_eci = r_sat * (sin_inc * sin_theta)
@@ -315,8 +318,8 @@ def satellite_positions_ecef(config: ConstellationConfig, times_sec: np.ndarray)
     y_ecef = -x_eci * sin_tg + y_eci * cos_tg
     z_ecef = z_eci
 
-    return np.stack([x_ecef, y_ecef, z_ecef], axis=2)
-
+    return np.stack([x_ecef, y_ecef, z_ecef], axis=2) 
+ 
 
 # ============================================================
 # 8. DANH GIA PHU SONG
@@ -334,7 +337,7 @@ def evaluate_coverage(config: ConstellationConfig,
     visible_count_matrix = np.zeros((n_targets, n_times), dtype=np.int16)
     best_range_matrix = np.full((n_targets, n_times), np.nan, dtype=float)
 
-    # === LOGIC MỚI: KIỂM TRA KẾT NỐI GATEWAY ===
+    # KIỂM TRA KẾT NỐI GATEWAY ===
     # Chuyển đổi 3 Gateway sang tọa độ ECEF
     gw_ecef = [ecef_from_latlon(lat, lon) for _, lat, lon in GATEWAYS_DEG]
     gw_up_vecs = [pos / R_EARTH_KM for pos in gw_ecef]
@@ -343,7 +346,7 @@ def evaluate_coverage(config: ConstellationConfig,
     # Shape: [N_sat, N_time]
     sat_to_gw = np.zeros((config.total_sats, n_times), dtype=bool)
     
-    for gw_pos, gw_up in zip(gw_ecef, gw_up_vecs):
+    for gw_pos, gw_up in zip(gw_ecef, gw_up_vecs): # Duyệt qua từng Gateway
         vec_gw = sat_ecef - gw_pos[None, None, :]
         dot_gw = np.einsum("ntk,k->nt", vec_gw, gw_up)
         slant_gw = np.linalg.norm(vec_gw, axis=2)
@@ -352,7 +355,7 @@ def evaluate_coverage(config: ConstellationConfig,
         sat_to_gw |= (sin_elev_gw >= min_elev_sin)
     # ============================================
 
-    for i, target in enumerate(targets):
+    for i, target in enumerate(targets):    # Duyệt qua từng điểm kiểm tra
         vec = sat_ecef - target.ecef_km[None, None, :]
         dot = np.einsum("ntk,k->nt", vec, target.up_vec)
         slant_range = np.linalg.norm(vec, axis=2)
@@ -369,7 +372,7 @@ def evaluate_coverage(config: ConstellationConfig,
         visible_any = np.any(end_to_end_link, axis=0)
         visible_count = np.sum(end_to_end_link, axis=0)
 
-        covered_matrix[i, :] = visible_any
+        covered_matrix[i, :] = visible_any 
         visible_count_matrix[i, :] = visible_count
 
         masked_range = np.where(end_to_end_link, slant_range, np.inf)
@@ -377,12 +380,9 @@ def evaluate_coverage(config: ConstellationConfig,
         best_range[~visible_any] = np.nan
         best_range_matrix[i, :] = best_range
 
-    uncovered_count = int(np.size(covered_matrix) - np.sum(covered_matrix))
-    coverage_ratio = float(np.mean(covered_matrix))
+    uncovered_count = int(np.size(covered_matrix) - np.sum(covered_matrix)) # tong so diem-thoi-diem - so diem-thoi-diem co phu song
+    coverage_ratio = float(np.mean(covered_matrix)) # ty le diem-thoi-diem co phu song tren tong so diem-thoi-diem
 
-    # ... (Giữ nguyên phần code tính toán phía dưới của hàm này: point_coverage, worst_idx, max_gap_sec, v.v...)
-    
-    # Doan nay copy lai phan cu cua ban
     point_coverage = np.mean(covered_matrix, axis=1)
     worst_idx = int(np.argmin(point_coverage))
     min_point_coverage_ratio = float(point_coverage[worst_idx])
@@ -391,7 +391,7 @@ def evaluate_coverage(config: ConstellationConfig,
     max_gap_sec = 0
     first_uncovered_samples: List[Tuple[str, str]] = []
 
-    for i, target in enumerate(targets):
+    for i, target in enumerate(targets): # tinh khoang thoi gian lien tuc dai nhat ma diem kiem tra bi mat phu song, va in ra mot so mau thoi diem mat phu song dau tien neu co
         gap = max_consecutive_false_gap_seconds(covered_matrix[i, :], TIME_STEP_SEC)
         max_gap_sec = max(max_gap_sec, gap)
 
@@ -399,10 +399,10 @@ def evaluate_coverage(config: ConstellationConfig,
             first_bad_idx = int(np.where(~covered_matrix[i, :])[0][0])
             first_uncovered_samples.append((target.name, hms_from_seconds(int(times_sec[first_bad_idx]))))
 
-    avg_visible_sats = float(np.mean(visible_count_matrix))
+    avg_visible_sats = float(np.mean(visible_count_matrix)) # so ve tinh kha kien trung binh ma mot diem kiem tra co the nhin thay tai moi thoi diem
     max_visible_sats = int(np.max(visible_count_matrix))
 
-    if np.all(np.isnan(best_range_matrix)):
+    if np.all(np.isnan(best_range_matrix)): 
         mean_one_way_delay_ms = None
         max_one_way_delay_ms = None
     else:
@@ -411,25 +411,25 @@ def evaluate_coverage(config: ConstellationConfig,
         mean_one_way_delay_ms = mean_range / C_KM_S * 1000.0
         max_one_way_delay_ms = max_range / C_KM_S * 1000.0
 
-    return CoverageResult(
-        config=config,
-        uncovered_count=uncovered_count,
-        coverage_ratio=coverage_ratio,
-        min_point_coverage_ratio=min_point_coverage_ratio,
-        max_gap_sec=max_gap_sec,
-        worst_point_name=worst_point_name,
-        avg_visible_sats=avg_visible_sats,
-        max_visible_sats=max_visible_sats,
-        mean_one_way_delay_ms=mean_one_way_delay_ms,
-        max_one_way_delay_ms=max_one_way_delay_ms,
-        first_uncovered_samples=first_uncovered_samples,
+    return CoverageResult( # luu ket qua danh gia phu song cua cau hinh ve tinh
+        config=config,  # cau hinh ve tinh duoc danh gia
+        uncovered_count=uncovered_count, # tong so địa điểm ở các thời điểm bi mat phu song
+        coverage_ratio=coverage_ratio, # ty le diem-thoi-diem co phu song tren tong so diem-thoi-diem
+        min_point_coverage_ratio=min_point_coverage_ratio, # ty le phu song tai diem kiem tra xau nhat
+        max_gap_sec=max_gap_sec, # khoang thoi gian lien tuc dai nhat ma mot diem kiem tra bi mat phu song
+        worst_point_name=worst_point_name, # ten diem kiem tra xau nhat
+        avg_visible_sats=avg_visible_sats, # so ve tinh kha kien trung binh ma mot diem kiem tra co the nhin thay tai moi thoi diem
+        max_visible_sats=max_visible_sats, # so ve tinh kha kien lon nhat ma mot diem kiem tra co the nhin thay tai moi thoi diem
+        mean_one_way_delay_ms=mean_one_way_delay_ms, # tre truyen song 1 chieu trung binh, tinh tu khoang cach trung binh chia cho toc do anh sang
+        max_one_way_delay_ms=max_one_way_delay_ms, # tre truyen song 1 chieu lon nhat, tinh tu khoang cach lon nhat chia cho toc do anh sang
+        first_uncovered_samples=first_uncovered_samples, # mot so mau thoi diem mat phu song dau tien, de biet diem nao va thoi diem nao bi mat phu song
     )
 # ============================================================
 # 9. TIM SO VE TINH TOI THIEU
 # ============================================================
 def candidate_configs_for_total_sats(total_sats: int) -> List[ConstellationConfig]:
     configs = []
-    for planes in range(MIN_PLANES, MAX_PLANES + 1):
+    for planes in range(MIN_PLANES, MAX_PLANES + 1): # thu lan luot so mat phang quy dao tu 4 den 14
         if total_sats % planes != 0:
             continue
 
@@ -437,7 +437,7 @@ def candidate_configs_for_total_sats(total_sats: int) -> List[ConstellationConfi
         if not (MIN_SATS_PER_PLANE <= sats_per_plane <= MAX_SATS_PER_PLANE):
             continue
 
-        for inc in INCLINATION_CANDIDATES_DEG:
+        for inc in INCLINATION_CANDIDATES_DEG: # thu lan luot cac goc nghieng tu 40 den 60 do, de tim goc nghieng tot nhat cho Viet Nam
             # Phasing tu 0 den planes-1
             for phasing in range(planes):
                 configs.append(ConstellationConfig(
@@ -451,7 +451,7 @@ def candidate_configs_for_total_sats(total_sats: int) -> List[ConstellationConfi
     return configs
 
 
-def is_better_result(a: CoverageResult, b: Optional[CoverageResult]) -> bool:
+def is_better_result(a: CoverageResult, b: Optional[CoverageResult]) -> bool: # so sanh 2 ket qua danh gia phu song de xac dinh ket qua nao tot hon, dua tren cac tieu chi sau theo thu tu uu tien:
     """True neu a tot hon b."""
     if b is None:
         return True
@@ -472,7 +472,7 @@ def is_better_result(a: CoverageResult, b: Optional[CoverageResult]) -> bool:
     return a.avg_visible_sats > b.avg_visible_sats
 
 
-def find_minimum_satellites() -> Optional[CoverageResult]:
+def find_minimum_satellites() -> Optional[CoverageResult]:  # ham chinh, thu lan luot cac cau hinh ve tinh tang dan theo so luong, danh gia phu song, va in ket qua tot nhat tim duoc
     targets = build_targets(TARGET_MODE)
     times_sec = np.arange(0, SIMULATION_HOURS * 3600, TIME_STEP_SEC, dtype=float)
 
@@ -491,14 +491,14 @@ def find_minimum_satellites() -> Optional[CoverageResult]:
 
     global_best: Optional[CoverageResult] = None
 
-    for total_sats in range(MIN_TOTAL_SATS, MAX_TOTAL_SATS + 1):
+    for total_sats in range(MIN_TOTAL_SATS, MAX_TOTAL_SATS + 1): # thu lan luot so ve tinh tu 4 den 140, voi moi so ve tinh, tim cac cau hinh Walker phu hop, danh gia phu song, va luu ket qua tot nhat
         configs = candidate_configs_for_total_sats(total_sats)
         if not configs:
             continue
 
         best_for_n: Optional[CoverageResult] = None
 
-        for cfg in configs:
+        for cfg in configs: # danh gia phu song cua tung cau hinh, va luu ket qua tot nhat cho so ve tinh dang xet
             result = evaluate_coverage(cfg, targets, times_sec, MIN_ELEV_DEG)
             if is_better_result(result, best_for_n):
                 best_for_n = result
@@ -507,7 +507,7 @@ def find_minimum_satellites() -> Optional[CoverageResult]:
         if is_better_result(best_for_n, global_best):
             global_best = best_for_n
 
-        if VERBOSE:
+        if VERBOSE: # in ra ket qua tot nhat tim duoc cho so ve tinh dang xet
             cfg = best_for_n.config
             print(
                 f"N={total_sats:3d} | best: "
@@ -520,7 +520,7 @@ def find_minimum_satellites() -> Optional[CoverageResult]:
                 f"worst={best_for_n.worst_point_name}"
             )
 
-        if best_for_n.uncovered_count == 0:
+        if best_for_n.uncovered_count == 0: # neu cau hinh nay da dat yeu cau, in ket qua va dung tim kiem
             print_result(best_for_n)
             return best_for_n
 
@@ -528,7 +528,7 @@ def find_minimum_satellites() -> Optional[CoverageResult]:
     if global_best is not None:
         print("\nCau hinh gan dat nhat:")
         print_result(global_best)
-    return None
+    return None # tra ve ket qua tot nhat tim duoc, hoac None neu khong tim duoc cau hinh nao dat yeu cau
 
 
 # ============================================================

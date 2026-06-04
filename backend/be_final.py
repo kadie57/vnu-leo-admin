@@ -85,17 +85,41 @@ def _sat_telemetry(lon: float, lat: float) -> dict:
     elev_hcm = 90.0 - dist_hcm * 5
     az_hcm = float(np.degrees(np.arctan2(GATEWAYS[2]["lon"] - lon, GATEWAYS[2]["lat"] - lat))) % 360
 
+    # --- Tính toán cho Hà Nội ---
     if elev_hn >= MIN_ELEV:
-        cn = round(15.0 + ((elev_hn - MIN_ELEV) / 75.0) * 10.0, 1)
-        delay_ms = round(15 + (90 - elev_hn) * 0.15)
-        link = "Hoạt động tốt" if elev_hn >= 25 else "Trong vùng phủ"
+        cn_hanoi = round(15.0 + ((elev_hn - MIN_ELEV) / 75.0) * 10.0, 1)
+        delay_hanoi_ms = round(15 + (90 - elev_hn) * 0.15)
+        link_status_hanoi = "Hoạt động tốt" if elev_hn >= 25 else "Trong vùng phủ"
     else:
-        cn = 0.0
-        delay_ms = 0
-        link = "Ngoài vùng phủ"
-        
-    slant_km = max(R_SAT * np.sin(np.radians(max(elev_hn, 0.1))), R_EARTH)
-    fspl = round(20 * np.log10(slant_km) + 20 * np.log10(12000) + 32.44, 1)
+        cn_hanoi = 0.0
+        delay_hanoi_ms = 0
+        link_status_hanoi = "Ngoài vùng phủ"
+    slant_km_hn = max(R_SAT * np.sin(np.radians(max(elev_hn, 0.1))), R_EARTH)
+    fspl_hanoi = round(20 * np.log10(slant_km_hn) + 20 * np.log10(12000) + 32.44, 1)
+
+    # --- Tính toán cho Đà Nẵng ---
+    if elev_dn >= MIN_ELEV:
+        cn_danang = round(15.0 + ((elev_dn - MIN_ELEV) / 75.0) * 10.0, 1)
+        delay_danang_ms = round(15 + (90 - elev_dn) * 0.15)
+        link_status_danang = "Hoạt động tốt" if elev_dn >= 25 else "Trong vùng phủ"
+    else:
+        cn_danang = 0.0
+        delay_danang_ms = 0
+        link_status_danang = "Ngoài vùng phủ"
+    slant_km_dn = max(R_SAT * np.sin(np.radians(max(elev_dn, 0.1))), R_EARTH)
+    fspl_danang = round(20 * np.log10(slant_km_dn) + 20 * np.log10(12000) + 32.44, 1)
+
+    # --- Tính toán cho TP.HCM ---
+    if elev_hcm >= MIN_ELEV:
+        cn_hcm = round(15.0 + ((elev_hcm - MIN_ELEV) / 75.0) * 10.0, 1)
+        delay_hcm_ms = round(15 + (90 - elev_hcm) * 0.15)
+        link_status_hcm = "Hoạt động tốt" if elev_hcm >= 25 else "Trong vùng phủ"
+    else:
+        cn_hcm = 0.0
+        delay_hcm_ms = 0
+        link_status_hcm = "Ngoài vùng phủ"
+    slant_km_hcm = max(R_SAT * np.sin(np.radians(max(elev_hcm, 0.1))), R_EARTH)
+    fspl_hcm = round(20 * np.log10(slant_km_hcm) + 20 * np.log10(12000) + 32.44, 1)
     
     return {
         "elevationHanoi": round(elev_hn, 1),
@@ -104,10 +128,24 @@ def _sat_telemetry(lon: float, lat: float) -> dict:
         "azimuthDanang": round(az_dn, 1),
         "elevationHCM": round(elev_hcm, 1),
         "azimuthHCM": round(az_hcm, 1),
-        "cn": cn,
-        "delayMs": delay_ms,
-        "fspl": fspl,
-        "linkStatus": link,
+        
+        "cn_hanoi": cn_hanoi,
+        "delay_hanoi_ms": delay_hanoi_ms,
+        "fspl_hanoi": fspl_hanoi,
+        "linkStatusHanoi": link_status_hanoi,
+        
+        "cn_danang": cn_danang,
+        "delay_danang_ms": delay_danang_ms,
+        "fspl_danang": fspl_danang,
+        "linkStatusDanang": link_status_danang,
+
+        "cn_hcm": cn_hcm,
+        "delay_hcm_ms": delay_hcm_ms,
+        "fspl_hcm": fspl_hcm,
+        "linkStatusHCM": link_status_hcm,
+
+        # Trả về linkStatus cơ bản cho tính tương thích cũ nếu code frontend đang cần
+        "linkStatus": link_status_hanoi,
     }
 
 # ==========================================
@@ -131,7 +169,7 @@ async def simulation_loop(websocket: WebSocket):
 
     try:
         while True:
-            t = frame * 20  # 20 giây mô phỏng mỗi frame (giống be_final gốc)
+            t = frame * 1
             theta_g = OMEGA_E * t
 
             sat_list = []
@@ -343,7 +381,7 @@ async def simulation_loop(websocket: WebSocket):
             })
 
             frame += 1
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
     except Exception as e:
         print("Disconnected", e)
 

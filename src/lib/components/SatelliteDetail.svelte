@@ -8,6 +8,12 @@
   let sat = $derived(satellites.find((s) => s.id === selectedId) ?? null);
 
   let activeTab = $state('tong_quan');
+  let selectedGw = $state('HANOI'); // Lựa chọn gateway cho tab liên kết
+
+  let s_link = $derived(sat ? (selectedGw === 'HANOI' ? sat.linkStatus : selectedGw === 'DANANG' ? sat.linkStatus_danang : sat.linkStatus_hcm) : null);
+  let s_cn = $derived(sat ? (selectedGw === 'HANOI' ? sat.cn : selectedGw === 'DANANG' ? sat.cn_danang : sat.cn_hcm) : null);
+  let s_fspl = $derived(sat ? (selectedGw === 'HANOI' ? sat.fspl : selectedGw === 'DANANG' ? sat.fspl_danang : sat.fspl_hcm) : null);
+  let s_delay = $derived(sat ? (selectedGw === 'HANOI' ? sat.delay : selectedGw === 'DANANG' ? sat.delay_danang : sat.delay_hcm) : null);
 </script>
 
 {#if !sat}
@@ -45,7 +51,6 @@
         <div class="info-row"><span class="lbl">C/N</span><span class="val highlight">{sat.status === 'NO SIGNAL' ? 'Không liên kết' : `${sat.cn} dB-Hz`}</span></div>
         <div class="info-row"><span class="lbl">FSPL</span><span class="val">{sat.status === 'NO SIGNAL' ? '—' : `${sat.fspl} dB`}</span></div>
         <div class="info-row"><span class="lbl">Trễ một chiều</span><span class="val">{sat.status === 'NO SIGNAL' ? '—' : `${sat.delay} ms`}</span></div>
-        <div class="info-row"><span class="lbl">Khoảng cách</span><span class="val">{sat.distance ?? '--'} km</span></div>
       </div>
     </div>
 
@@ -72,14 +77,20 @@
     </div>
 
   {:else if activeTab === 'lien_ket'}
-    <div class="detail-content" style="flex-direction: column; gap: 2rem; overflow-y: auto;">
-      
+    <div class="detail-content" style="flex-direction: column; gap: 1.5rem; overflow-y: auto;">
+
+      <div class="tabs" style="margin-left: 0; justify-content: flex-start; gap: 10px;">
+        <button class={selectedGw === 'HANOI' ? 'btn-gw active' : 'btn-gw'} onclick={() => selectedGw = 'HANOI'}>Hà Nội</button>
+        <button class={selectedGw === 'DANANG' ? 'btn-gw active' : 'btn-gw'} onclick={() => selectedGw = 'DANANG'}>Đà Nẵng</button>
+        <button class={selectedGw === 'HCM' ? 'btn-gw active' : 'btn-gw'} onclick={() => selectedGw = 'HCM'}>TP. HCM</button>
+      </div>
+
       <div class="info-table" style="width: 100%;">
         <h3>TRẠNG THÁI LIÊN KẾT (LINK STATUS)</h3>
         <div class="info-row">
           <span class="lbl">Tình trạng</span>
-          <span class="val" style="color: {sat.status === 'NO SIGNAL' ? '#ef4444' : (sat.status === 'HANDOVER' ? '#f59e0b' : '#10b981')}; font-weight: bold;">
-            {sat.linkStatus ?? '--'}
+          <span class="val" style="color: {s_link === 'Ngoài vùng phủ' ? '#ef4444' : (s_link === 'Trong vùng phủ' ? '#f59e0b' : '#10b981')}; font-weight: bold;">
+            {s_link ?? '--'}
           </span>
         </div>
         <div class="info-row"><span class="lbl">Băng tần hoạt động (Band)</span><span class="val">{sat.band ?? '--'}</span></div>
@@ -89,15 +100,15 @@
         <h3>CHẤT LƯỢNG DỊCH VỤ (QoS)</h3>
         <div class="info-row">
           <span class="lbl">Tỷ số tín hiệu/nhiễu (C/N)</span>
-          <span class="val highlight">{sat.status === 'NO SIGNAL' ? '--' : `${sat.cn} dB-Hz`}</span>
+          <span class="val highlight">{s_link === 'Ngoài vùng phủ' ? '--' : `${s_cn} dB-Hz`}</span>
         </div>
         <div class="info-row">
           <span class="lbl">Suy hao không gian tự do (FSPL)</span>
-          <span class="val">{sat.status === 'NO SIGNAL' ? '--' : `${sat.fspl} dB`}</span>
+          <span class="val">{s_link === 'Ngoài vùng phủ' ? '--' : `${s_fspl} dB`}</span>
         </div>
         <div class="info-row">
           <span class="lbl">Độ trễ truyền dẫn 1 chiều</span>
-          <span class="val" style="color: #fbbf24;">{sat.status === 'NO SIGNAL' ? '--' : `${sat.delay} ms`}</span>
+          <span class="val" style="color: #fbbf24;">{s_link === 'Ngoài vùng phủ' ? '--' : `${s_delay} ms`}</span>
         </div>
       </div>
 
@@ -132,4 +143,7 @@
   .lbl { color: #94a3b8; }
   .val { color: #f8fafc; font-weight: 500; text-align: right; }
   .highlight { color: #10b981; }
+
+  .btn-gw { background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 0.25rem 0.75rem; font-size: 0.7rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+  .btn-gw.active { background: #3b82f6; color: white; border-color: #3b82f6; }
 </style>
